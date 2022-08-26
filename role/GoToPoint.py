@@ -10,7 +10,14 @@ from utils.functions import *
 from utils.config import *
 
 class GoToPoint(behavior.Behavior):
-    """docstring for GoToPoint"""
+    """
+    Goes to the ball from current position
+
+    Parameters:
+    behavior.Behavior(object): Inheriting from Behaviour.py file
+
+
+    """
     ##
     ## @brief      Class for state.
     ##
@@ -20,16 +27,30 @@ class GoToPoint(behavior.Behavior):
 
 
     def __init__(self,continuous=False):
+        """
+        Initialize the attributes of the class
+
+        Paramaters: self: present in every class, continuous: 
+
+        """
         # print "gtp"
         #GoToPoint.behavior.Behavior()
         #g = behavior.Behavior()
         #print "gtp2"
         super(GoToPoint,self).__init__()
+        """
+        Used to initialize superclass attributes
+
+        Parameters: Current class name, object name
+
+        """
         #self.state = state
 
         self.name = "GoToPoint"
 
+        #setting this to false initially as we have not failed yet
         self.behavior_failed = False
+        
         self.DISTANCE_THRESH = DISTANCE_THRESH
 
         self.add_state(GoToPoint.State.setup,
