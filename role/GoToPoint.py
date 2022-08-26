@@ -22,6 +22,10 @@ class GoToPoint(behavior.Behavior):
     ## @brief      Class for state.
     ##
     class State(Enum):
+        """
+        Two states in the program are setup and drive
+
+        """
         setup = 1 
         drive = 2
 
@@ -53,31 +57,61 @@ class GoToPoint(behavior.Behavior):
         
         self.DISTANCE_THRESH = DISTANCE_THRESH
 
+        """
+        Define two new states in the fsm, drive and setup.
+
+        Parameters: add_state(self, state, parent_state=None)
+        """
+        #Start, running, completed, failed, cancelled are the five states inhereted from behaviour.py
+
+        #transition to go from setup state to running state
         self.add_state(GoToPoint.State.setup,
             behavior.Behavior.State.running)
+
+        #transition to go from drive to running state
         self.add_state(GoToPoint.State.drive,
             behavior.Behavior.State.running)
-        
 
+        """
+        Define transitions involving setup and drive here
+
+        Parameters: add_transition(self, from_state, to_state, condition, event_name)
+        """
+
+        
+        #transition to go from start to setup state
         self.add_transition(behavior.Behavior.State.start,
             GoToPoint.State.setup,lambda: True,'immediately')
 
+        #transition to go from setup to drive state
         self.add_transition(GoToPoint.State.setup,
             GoToPoint.State.drive,lambda: self.target_present(),'setup')
 
         #self.add_transition(GoToPoint.State.drive,
         #    GoToPoint.State.drive,lambda: not self.at_new_point(),'restart')
 
+        #transition to go from drive to completed state
         self.add_transition(GoToPoint.State.drive,
             behavior.Behavior.State.completed,lambda:self.at_new_point(),'complete')
 
+        #transition to go from setup to failed state
         self.add_transition(GoToPoint.State.setup,
             behavior.Behavior.State.failed,lambda: self.behavior_failed,'failed')
 
+        #transition to go from drive to failed state
         self.add_transition(GoToPoint.State.drive,
             behavior.Behavior.State.failed,lambda: self.behavior_failed,'failed')
 
+    """
+    The add_point function is used to define a position
 
+    It is being used here to define a point and optionally an angle if 
+    we want to reset the angle value to some arbitrary value. Else, 
+    we are going to set it to whatever it's previous theta was
+
+    Parameters: 1: point(an object with x and y coordinates) 
+                2: theta is the optional parameter we can specify (orientation angle)
+    """
     def add_point(self,point,orient=None):
         self.target_point = point
         if orient:
@@ -85,9 +119,11 @@ class GoToPoint(behavior.Behavior):
         else:
             self.theta = self.kub.get_pos().theta
         
+    #defining a new cub using this function
     def add_kub(self,kub):
         self.kub = kub
         
+    # function that returns our current target position
     def target_present(self):
         return self.target_point is not None
 
