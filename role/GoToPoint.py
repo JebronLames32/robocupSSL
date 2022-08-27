@@ -64,11 +64,11 @@ class GoToPoint(behavior.Behavior):
         """
         #Start, running, completed, failed, cancelled are the five states inhereted from behaviour.py
 
-        #transition to go from setup state to running state
+        #Creates new state setup under parent state running
         self.add_state(GoToPoint.State.setup,
             behavior.Behavior.State.running)
 
-        #transition to go from drive to running state
+        #Creates new state drive under parent state running
         self.add_state(GoToPoint.State.drive,
             behavior.Behavior.State.running)
 
@@ -79,26 +79,26 @@ class GoToPoint(behavior.Behavior):
         """
 
         
-        #transition to go from start to setup state
+        #transition to go from start to setup state, occurs always
         self.add_transition(behavior.Behavior.State.start,
             GoToPoint.State.setup,lambda: True,'immediately')
 
-        #transition to go from setup to drive state
+        #transition to go from setup to drive state, occurs when the target is set
         self.add_transition(GoToPoint.State.setup,
             GoToPoint.State.drive,lambda: self.target_present(),'setup')
 
         #self.add_transition(GoToPoint.State.drive,
         #    GoToPoint.State.drive,lambda: not self.at_new_point(),'restart')
 
-        #transition to go from drive to completed state
+        #transition to go from drive to completed state, occurs when the kub reached the destination 
         self.add_transition(GoToPoint.State.drive,
             behavior.Behavior.State.completed,lambda:self.at_new_point(),'complete')
 
-        #transition to go from setup to failed state
+        #transition to go from setup to failed state, occurs when the state fails
         self.add_transition(GoToPoint.State.setup,
             behavior.Behavior.State.failed,lambda: self.behavior_failed,'failed')
 
-        #transition to go from drive to failed state
+        #transition to go from drive to failed state, occurs when the state fails
         self.add_transition(GoToPoint.State.drive,
             behavior.Behavior.State.failed,lambda: self.behavior_failed,'failed')
 
@@ -112,6 +112,7 @@ class GoToPoint(behavior.Behavior):
     Parameters: 1: point(an object with x and y coordinates) 
                 2: theta is the optional parameter we can specify (orientation angle)
     """
+    #function to change the self.target_point
     def add_point(self,point,orient=None):
         self.target_point = point
         if orient:
@@ -119,7 +120,7 @@ class GoToPoint(behavior.Behavior):
         else:
             self.theta = self.kub.get_pos().theta
         
-    #defining a new cub using this function
+    #making self.kub the kub we want to move
     def add_kub(self,kub):
         self.kub = kub
         
