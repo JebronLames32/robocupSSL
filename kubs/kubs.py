@@ -3,22 +3,27 @@ import rospy
 from krssg_ssl_msgs.msg import BeliefState
 from utils.functions import kub_has_ball
 
-##
-## @brief      Class for kubs.
-##
+"""
+Class for kubs
+"""
 class kubs:
-    ##
-    ## @brief      Constructs the object.
-    ##
-    ## @param      self     The object
-    ## @param      kubs_id  The kubs identifier
-    ##
+    """
+    Constructs the object(kub), initializing class attributes
+    
+    Parameters:
+        self: object
+        kubs_id(int): id if the kub(number)
+        Bstate(function_object): State of the kub
+        pub(function_object): the ros publisher (will be initialized in test_role.py)
+    """
     
     def __init__(self, kubs_id, BState, pub):
         self.kubs_id = kubs_id
+        #velocities
         self.vx = 0
         self.vy = 0
         self.vw = 0
+        
         self.isteamyellow = False
         self.dribbler = False
         self.power = False
@@ -26,18 +31,23 @@ class kubs:
         # self.kubsBelief()
         self.pub = pub
         self.c=0
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self  The object
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
     
+    """
+    Updates the state and position of the object(kub)
+    
+    Parameters:
+        self: object
+        state(function_object): state of the kub
+    """
     def update_state(self,state):
         self.state = state
         self.pos = state.homePos[self.kubs_id]
 
+    """
+    Reset the velocities, angle and power of the object(kub). Turns off the dribbler.
+    Parameter: 
+        self: object
+    """
     def reset(self):
         self.dribbler = False
         self.vx = 0.0
@@ -45,86 +55,82 @@ class kubs:
         self.vw = 0.0
         self.power = 0.0
     
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self          The object
-    ## @param      target_point  The target point
-    ## @param      state         The state
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
+    """
+    Setting the 2D velocity of the object(kub)
     
+    Parameters:
+        self: object
+        vx(float): X-component of velocity
+        vy(float): Y-component of velocity
+    """    
     def move(self, vx, vy):
         self.vx = vx
         self.vy = vy
 
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self  The object
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
+    """
+    Set the state of the dribbler
     
-
+    Parameters:
+        self: object
+        dribbler(bool): A boolean value to control the dribbler of the kub
+    """
     def dribble(self, dribbler):
         self.dribbler = dribbler
 
 
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self   The object
-    ## @param      angle  The angle
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
-
+    """
+    Set the angular velocity
+    
+    Parameters:
+        self: object
+        vw(float): angular velociry
+    """
     def turn(self, vw):
         self.vw = vw
 
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self   The object
-    ## @param      power  The power
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
+    """
+    Set the power of kick
     
-
+    Parameters:
+        self: object
+        power(float): power of kick
+    """
     def kick(self, power):
         self.power = power
 
 
 
-    ##
-    ## @brief      { function_description }
-    ##
-    ## @param      self   The object
-    ## @param      state  The state
-    ##
-    ## @return     { description_of_the_return_value }
-    ##
+    """
+    The real deal that publishes any kind of motion
     
-
+    Parameters:
+        self: object
+    """
     def execute(self):
         cmd_node.send_command(self.pub, self.isteamyellow, self.kubs_id, self.vx, self.vy, self.vw, self.power, self.dribbler)  
         self.reset()
 
+    """
+    Get the State and ID of the kub which has the ball
+    
+    Parameters:
+        self: object
+        
+    Returns:
+        (function_object,int): The state and the id of the kub
+    """
     def has_ball(self):
         return kub_has_ball(self.state,self.kubs_id)
 
-    ##
-    ## @brief      Gets the position.
-    ##
-    ## @param      self   The object
-    ## @param      state  The state
-    ##
-    ## @return     The position.
-    ##
+    """
+    Get the velocity of the kub
     
+    Parameters:
+        self: object
+        
+    Returns:
+        (dictionary): {(float,float),float}: {X and Y component of velocities, Angular velocity}
+    """
     def get_vel(self):
         velo = {
                 'magnitute':magnitute(self.state.homeVel[self.kubs_id]),
@@ -132,10 +138,27 @@ class kubs:
                 }
         return velo
 
+    """
+    Get the linear position of the kub
+    
+    Parameters:
+        self: object
+        
+    Returns:
+        (tuple): (float,float): (X and Y component of position)
+    """
     def get_pos(self):
         return self.state.homePos[self.kubs_id]
 
+    """
+    Get the angular position of the kub
     
+    Parameters:
+        self: object
+        
+    Returns:
+        (float): Angle theta of the kub
+    """    
     def get_theta(self):
         return self.state.homePos[self.kubs_id].theta
 
