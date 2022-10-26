@@ -14,12 +14,12 @@ def bot_in_front_of_ball(kub, thresh = BOT_RADIUS*1.5):
 
 def kub_has_ball(state, kub_id, is_opponent=False):
     if is_opponent:
-        theta1 = state.awayPos[kub_id].theta
+        theta1 = state.awayPos[kub_id].theta    #awaypos for opponent
         theta2 = math.atan2(
             state.ballPos.y - state.awayPos[kub_id].y, state.ballPos.x - state.awayPos[kub_id].x)
         return vicinity_theta(theta1, theta2, thresh=0.25) and vicinity_points(state.awayPos[kub_id], state.ballPos, thresh=BOT_RADIUS * 1.5)
     else:
-        theta1 = state.homePos[kub_id].theta
+        theta1 = state.homePos[kub_id].theta        #homepos for our bots
         theta2 = math.atan2(
             state.ballPos.y - state.homePos[kub_id].y, state.ballPos.x - state.homePos[kub_id].x)
         return vicinity_theta(theta1, theta2, thresh=0.25) and vicinity_points(state.homePos[kub_id], state.ballPos, thresh=BOT_RADIUS * 1.5)

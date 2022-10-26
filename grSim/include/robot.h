@@ -25,9 +25,13 @@ Copyright (C) 2011, Parsian Robotic Center (eew.aut.ac.ir/~parsian/grsim)
 #include "physics/pball.h"
 #include "configwidget.h"
 
+enum KickStatus {
+    NO_KICK   = 0,
+    FLAT_KICK = 1,
+    CHIP_KICK = 2,
+};
 
-class Robot
-{
+class Robot {
     PWorld* w;
     PBall* m_ball;
     dReal m_x,m_y,m_z;
@@ -35,19 +39,26 @@ class Robot
     dReal m_dir;
     int m_rob_id;
     bool firsttime;
-    bool last_state;
+    bool last_state{};
+
+    dReal AccSpeedupAbsoluteMax;
+    dReal AccSpeedupAngularMax;
+    dReal AccBrakeAbsoluteMax;
+    dReal AccBrakeAngularMax;
+    dReal VelAbsoluteMax;
+    dReal VelAngularMax;
 public:    
     ConfigWidget* cfg;
     dSpaceID space;
     PCylinder* chassis;
     PBall* dummy;
     dJointID dummy_to_chassis;
-    PBox* boxes[3];    
+    PBox* boxes[3]{};
     bool on;
     //these values are not controled by this class
-    bool selected;
-    dReal select_x,select_y,select_z;    
-    QImage *img,*number;
+    bool selected{};
+    dReal select_x{},select_y{},select_z{};
+    QImage *img{},*number{};
     class Wheel
     {
       public:
@@ -59,14 +70,15 @@ public:
         PCylinder* cyl;
         dReal speed;
         Robot* rob;
-    } *wheels[4];
+    } *wheels[4]{};
     class Kicker
     {
       private:
-        bool kicking;
+        KickStatus kicking;
         int rolling;
         int kickstate;
         dReal m_kickspeed,m_kicktime;
+        bool holdingBall;
       public:
         Kicker(Robot* robot);
         void step();
@@ -75,7 +87,11 @@ public:
         int getRoller();
         void toggleRoller();
         bool isTouchingBall();
+        KickStatus isKicking();
+        void holdBall();
+        void unholdBall();
         dJointID joint;
+        dJointID robot_to_ball;
         PBox* box;
         Robot* rob;
     } *kicker;
@@ -92,10 +108,12 @@ public:
     void resetRobot();
     void getXY(dReal& x,dReal& y);
     dReal getDir();
+    dReal getDir(dReal &k);
     void setXY(dReal x,dReal y);
     void setDir(dReal ang);
     int getID();
     PBall* getBall();
+    PWorld* getWorld();
 };
 
 

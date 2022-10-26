@@ -1,3 +1,4 @@
+print("importing math function")
 import math
 from ctypes import *
 from geometry import Vector2D
@@ -211,8 +212,8 @@ def direction(vector):
 
 
 def getPointBehindTheBall(point, theta, factor=3.5):
-	x = point.x + (factor * BOT_RADIUS) * (math.cos(theta))
-	y = point.y + (factor * BOT_RADIUS) * (math.sin(theta))
+	x = point.x - (factor * BOT_RADIUS) * (math.cos(theta))
+	y = point.y - (factor * BOT_RADIUS) * (math.sin(theta))
 	return Vector2D(int(x), int(y))
 
 def getPointToGo(point, theta):

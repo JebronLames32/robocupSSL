@@ -57,7 +57,7 @@ def reset():
     start_time = rospy.Time.now()
     start_time = 1.0*start_time.secs + 1.0*start_time.nsecs/pow(10,9)
     
-def execute(startTime,DIST_THRESH,avoid_ball=False):
+def execute(startTime,DIST_THRESH,avoid_ball=False, fine_approach=False):
     global getState,GOAL_POINT, start_time,FIRST_CALL,FLAG_turn,FLAG_move,kub,prev_state,vx_end,vy_end
 
     if FIRST_CALL:
@@ -82,6 +82,10 @@ def execute(startTime,DIST_THRESH,avoid_ball=False):
             t = t.secs + 1.0*t.nsecs/pow(10,9)
 
             [vx, vy, vw, REPLANNED] = velocity.run.Get_Vel(start_time, t, kub.kubs_id, GOAL_POINT, kub.state.homePos, kub.state.awayPos, avoid_ball)
+            if fine_approach:
+                vx=vx/2
+                vy=vy/2
+                vw=vw/2
             velocity_magnitude = Vector2D(vx,vy).abs(Vector2D(vx,vy))
             if velocity_magnitude > MAX_BOT_SPEED:
                 angle_movement = math.atan2(vy,vx)

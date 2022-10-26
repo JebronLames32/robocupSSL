@@ -1,5 +1,7 @@
-import "messages_robocup_ssl_detection.proto";
-import "messages_robocup_ssl_geometry.proto";
+syntax = "proto2";
+
+import "ssl_vision_detection.proto";
+import "ssl_vision_geometry.proto";
 
 message SSL_WrapperPacket {
   optional SSL_DetectionFrame detection = 1;

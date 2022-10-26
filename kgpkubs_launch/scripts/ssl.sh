@@ -23,7 +23,7 @@ if [ $? -eq 0 ]; then
     echo "grSim already running."
 else
     echo "launching grSim."
-    launcher "grSim" "rosrun grSim grsim"
+    launcher "grSim" "rosrun grSim grSim"
 fi
 
 launcher    "core"         "roscore"

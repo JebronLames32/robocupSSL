@@ -56,7 +56,3 @@ while True:
 		print('chal ja')
 		# break
 rospy.spin()	
-
-
-
-

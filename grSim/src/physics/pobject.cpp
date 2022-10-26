@@ -53,6 +53,13 @@ void PObject::setColor(dReal r,dReal g,dReal b)
     m_blue = b;
 }
 
+void PObject::setColor(const QColor &color)
+{
+    m_red = color.redF()*4;
+    m_green = color.greenF()*4;
+    m_blue = color.blueF()*4;
+}
+
 void PObject::getColor(dReal& r,dReal& g,dReal& b)
 {
     r = m_red;
@@ -114,6 +121,18 @@ void PObject::getBodyDirection(dReal &x,dReal &y,dReal &z)
   x = axis[0];
   y = axis[1];
   z = axis[2];
+}
+
+void PObject::getBodyDirection(dReal &x,dReal &y,dReal &z, dReal &k)
+{
+  const dReal *r=dBodyGetRotation(body);
+  dVector3 v={1,0,0};
+  dVector3 axis;
+  dMultiply0(axis,r,v,4,3,1);
+  x = axis[0];
+  y = axis[1];
+  z = axis[2];
+  k = r[10];
 }
 
 void PObject::getBodyRotation(dMatrix3 r,bool local)

@@ -62,7 +62,7 @@ void Robot::Wheel::step()
     dJointSetAMotorParam(motor,dParamFMax,rob->cfg->robotSettings.Wheel_Motor_FMax);
 }
 
-Robot::Kicker::Kicker(Robot* robot)
+Robot::Kicker::Kicker(Robot* robot) : holdingBall(false)
 {
     rob = robot;
 
@@ -89,41 +89,24 @@ Robot::Kicker::Kicker(Robot* robot)
     dJointSetHingeParam (joint,dParamHiStop,0);
 
     rolling = 0;
-    kicking = false;
+    kicking = NO_KICK;
 }
 
 void Robot::Kicker::step()
 {
-    if (kicking)
+    if (!isTouchingBall() || rolling == 0) unholdBall();
+    if (kicking != NO_KICK)
     {
         box->setColor(1,0.3,0);
         kickstate--;
-        if (kickstate<=0) kicking = false;
+        if (kickstate<=0) kicking = NO_KICK;
     }
     else if (rolling!=0)
     {
         box->setColor(1,0.7,0);
         if (isTouchingBall())
         {
-            dReal fx,fy,fz;
-            rob->chassis->getBodyDirection(fx,fy,fz);
-            fz = sqrt(fx*fx + fy*fy);
-            fx/=fz;fy/=fz;
-            if (rolling==-1) {fx=-fx;fy=-fy;}
-            rob->getBall()->tag = rob->getID();
-
-            dReal vx,vy,vz;
-            dReal bx,by,bz;
-            dReal kx,ky,kz;
-            rob->chassis->getBodyDirection(vx,vy,vz);
-            rob->getBall()->getBodyPosition(bx,by,bz);
-            box->getBodyPosition(kx,ky,kz);
-            dReal yy = -((-(kx-bx)*vy + (ky-by)*vx)) / rob->cfg->robotSettings.KickerWidth;
-            //dReal dir = 1;
-            //if (yy>0) dir = -1.0f;//never read
-            dBodySetAngularVel(rob->getBall()->body,fy*rob->cfg->robotSettings.RollerTorqueFactor*1400,-fx*rob->cfg->robotSettings.RollerTorqueFactor*1400,0);
-            //dBodyAddTorque(rob->getBall()->body,fy*rob->cfg->ROLLERTORQUEFACTOR(),-fx*rob->cfg->ROLLERTORQUEFACTOR(),0);
-            dBodyAddTorque(rob->getBall()->body,yy*fx*rob->cfg->robotSettings.RollerPerpendicularTorqueFactor,yy*fy*rob->cfg->robotSettings.RollerPerpendicularTorqueFactor,0);
+            holdBall();
         }
     }
     else box->setColor(0.9,0.9,0.9);
@@ -143,6 +126,11 @@ bool Robot::Kicker::isTouchingBall()
     dReal yy = fabs(-(kx-bx)*vy + (ky-by)*vx);
     dReal zz = fabs(kz-bz);
     return ((xx<rob->cfg->robotSettings.KickerThickness*2.0f+rob->cfg->BallRadius()) && (yy<rob->cfg->robotSettings.KickerWidth*0.5f) && (zz<rob->cfg->robotSettings.KickerHeight*0.5f));
+}
+
+KickStatus Robot::Kicker::isKicking()
+{
+    return kicking;
 }
 
 void Robot::Kicker::setRoller(int roller)
@@ -168,6 +156,7 @@ void Robot::Kicker::kick(dReal kickspeedx, dReal kickspeedz)
     dReal vx,vy,vz;
     rob->chassis->getBodyDirection(dx,dy,dz);dz = 0;
     dReal zf = kickspeedz;
+    unholdBall();
     if (isTouchingBall())
     {
         dReal dlen = dx*dx+dy*dy+dz*dz;
@@ -181,9 +170,37 @@ void Robot::Kicker::kick(dReal kickspeedx, dReal kickspeedz)
         vx += vn * dx - vt * dy;
         vy += vn * dy + vt * dx;
         dBodySetLinearVel(rob->getBall()->body,vx,vy,vz);
+        if (kickspeedz >= 1)
+            kicking = CHIP_KICK;
+        else
+            kicking = FLAT_KICK;
+        kickstate = 10;
     }
-    kicking = true;
-    kickstate = 10;
+}
+
+void Robot::Kicker::holdBall(){
+    dReal vx,vy,vz;
+    dReal bx,by,bz;
+    dReal kx,ky,kz;
+    rob->chassis->getBodyDirection(vx,vy,vz);
+    rob->getBall()->getBodyPosition(bx,by,bz);
+    box->getBodyPosition(kx,ky,kz);
+    kx += vx*rob->cfg->robotSettings.KickerThickness*0.5f;
+    ky += vy*rob->cfg->robotSettings.KickerThickness*0.5f;
+    dReal xx = fabs((kx-bx)*vx + (ky-by)*vy);
+    dReal yy = fabs(-(kx-bx)*vy + (ky-by)*vx);
+    if(holdingBall || xx-rob->cfg->BallRadius() < 0) return;
+    dBodySetLinearVel(rob->getBall()->body,0,0,0);
+    robot_to_ball = dJointCreateHinge(rob->getWorld()->world,0);
+    dJointAttach (robot_to_ball,box->body,rob->getBall()->body);
+    holdingBall = true;
+}
+
+void Robot::Kicker::unholdBall(){
+    if(holdingBall) {
+        dJointDestroy(robot_to_ball);
+        holdingBall = false;
+    }
 }
 
 Robot::Robot(PWorld* world,PBall *ball,ConfigWidget* _cfg,dReal x,dReal y,dReal z,dReal r,dReal g,dReal b,int rob_id,int wheeltexid,int dir)
@@ -199,6 +216,13 @@ Robot::Robot(PWorld* world,PBall *ball,ConfigWidget* _cfg,dReal x,dReal y,dReal 
     m_dir = dir;
     cfg = _cfg;
     m_rob_id = rob_id;
+
+    AccSpeedupAbsoluteMax = cfg->robotSettings.AccSpeedupAbsoluteMax;
+    AccSpeedupAngularMax = cfg->robotSettings.AccSpeedupAngularMax;
+    AccBrakeAbsoluteMax = cfg->robotSettings.AccBrakeAbsoluteMax;
+    AccBrakeAngularMax = cfg->robotSettings.AccBrakeAngularMax;
+    VelAbsoluteMax = cfg->robotSettings.VelAbsoluteMax;
+    VelAngularMax = cfg->robotSettings.VelAngularMax;
 
     space = w->space;
 
@@ -232,6 +256,11 @@ Robot::~Robot()
 PBall* Robot::getBall()
 {
     return m_ball;
+}
+
+PWorld* Robot::getWorld()
+{
+    return w;
 }
 
 int Robot::getID()
@@ -365,6 +394,16 @@ dReal Robot::getDir()
     return (y > 0) ? absAng : -absAng;
 }
 
+dReal Robot::getDir(dReal &k)
+{
+    dReal x,y,z;
+    chassis->getBodyDirection(x,y,z,k);
+    dReal dot = x;//zarb dar (1.0,0.0,0.0)
+    dReal length = sqrt(x*x + y*y);
+    dReal absAng = (dReal)(acos((dReal)(dot/length)) * (180.0f/M_PI));
+    return (y > 0) ? absAng : -absAng;
+}
+
 void Robot::setXY(dReal x,dReal y)
 {
     dReal xx,yy,zz,kx,ky,kz;
@@ -413,8 +452,51 @@ void Robot::setSpeed(int i,dReal s)
 
 void Robot::setSpeed(dReal vx, dReal vy, dReal vw)
 {
-    // Calculate Motor Speeds
     dReal _DEG2RAD = M_PI / 180.0;
+
+    dReal v = sqrt(vx * vx + vy * vy);
+    if (v > VelAbsoluteMax) {
+        vx *= VelAbsoluteMax / v;
+        vy *= VelAbsoluteMax / v;
+        v = VelAbsoluteMax;
+    }
+    if (abs(vw) > VelAngularMax) {
+        vw = copysign(VelAngularMax, vw);
+    }
+    
+    const dReal* cvv = dBodyGetLinearVel(chassis->body);
+    dReal cv = sqrt(cvv[0]*cvv[0]+cvv[1]*cvv[1]);
+    dReal a = (v - cv) / cfg->DeltaTime() / 2;
+    dReal aLimit = a > 0 ? AccSpeedupAbsoluteMax : AccBrakeAbsoluteMax;
+    if (abs(a) > aLimit) {
+        a = copysign(aLimit, a);
+        dReal new_v = cv + a * cfg->DeltaTime() * 2;
+        if (v > 0) {
+            vx *= new_v / v;
+            vy *= new_v / v;
+        } else {
+            // convert global to local
+            dReal angle;
+            angle = getDir();
+            angle *= _DEG2RAD;
+            dReal cvx = cvv[0]*cos(angle) + cvv[1]*sin(angle);
+            dReal cvy = -cvv[0]*sin(angle) + cvv[1]*cos(angle);
+
+            vx = cvx * (new_v / cv);
+            vy = cvy * (new_v / cv);
+        }
+    }
+
+    const dReal* cvvw = dBodyGetAngularVel(chassis->body);
+    dReal cvw = cvvw[2];
+    dReal aw = (vw - cvw) / cfg->DeltaTime() / 2;
+    dReal awLimit = aw > 0 ? AccSpeedupAngularMax : AccBrakeAngularMax;
+    if (abs(aw) > awLimit) {
+        aw = copysign(awLimit, aw);
+        vw = cvw + aw * cfg->DeltaTime() * 2;
+    }
+    
+    // Calculate Motor Speeds
     dReal motorAlpha[4] = {cfg->robotSettings.Wheel1Angle * _DEG2RAD, cfg->robotSettings.Wheel2Angle * _DEG2RAD, cfg->robotSettings.Wheel3Angle * _DEG2RAD, cfg->robotSettings.Wheel4Angle * _DEG2RAD};
 
     dReal dw1 =  (1.0 / cfg->robotSettings.WheelRadius) * (( (cfg->robotSettings.RobotRadius * vw) - (vx * sin(motorAlpha[0])) + (vy * cos(motorAlpha[0]))) );
