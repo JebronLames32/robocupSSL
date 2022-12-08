@@ -10,6 +10,8 @@ from velocity.run import *
 import time
 from krssg_ssl_msgs.srv import *
 
+
+
 rospy.wait_for_service('bsServer',)
 getState = rospy.ServiceProxy('bsServer',bsServer)
 time_thresh=0
@@ -69,25 +71,30 @@ class HeadonRecieve(behavior.Behavior):
         print("ballpos:",self.kub.state.ballPos)
         ball_to_bot_line = Line(point2=Vector2D(self.kub.state.homePos[self.defender_id].x,self.kub.state.homePos[self.defender_id].y),point1=Vector2D(self.kub.state.ballPos.x,self.kub.state.ballPos.y))
         print("botpos:",self.kub.state.homePos[self.defender_id])
-        angle_at_vextex = ball_to_bot_line.angle_with_line(ball_vel_line)
+
+        intersection_point=ball_vel_line.nearest_point_on_line(self.kub.state.homePos[self.defender_id])
+        bot_vel_line=Line(point1=Vector2D(self.kub.state.homePos[self.defender_id].x,self.kub.state.homePos[self.defender_id].y),point2=intersection_point)
+        print("Angle of bot motion: ",radian_2_deg(bot_vel_line.angle))
+
+        # angle_at_vextex = ball_to_bot_line.angle_with_line(ball_vel_line)
         # angle_at_vextex = math.pi-angle_at_vextex
-        ball_velocity=magnitute(self.kub.state.ballVel)
-        bot_velocity=600
+        # ball_velocity=magnitute(self.kub.state.ballVel)
+        # bot_velocity=600
         print(self.kub.state.ballVel)
-        print("Ball velocity",ball_velocity)
-        print("Bot velocity",bot_velocity)
-        k=ball_velocity/bot_velocity
-        print("K=",k," angle at vertex=",radian_2_deg(angle_at_vextex))
-        alpha=math.asin(k*math.sin(angle_at_vextex))*1.3
-        print("Alpha: ",radian_2_deg(alpha))
+        # print("Ball velocity",ball_velocity)
+        # print("Bot velocity",bot_velocity)
+        # k=ball_velocity/bot_velocity
+        # print("K=",k," angle at vertex=",radian_2_deg(angle_at_vextex))
+        # alpha=math.asin(k*math.sin(angle_at_vextex))*1.3
+        # print("Alpha: ",radian_2_deg(alpha))
         # ball_to_bot_line.angle=math.pi-ball_to_bot_line.angle
-        angle_of_bot_motion=ball_to_bot_line.angle-alpha
-        print("Angle of balltobotline: ",radian_2_deg(ball_to_bot_line.angle))
-        print("Angle of bot motion: ",radian_2_deg(angle_of_bot_motion))
-        bot_vel_line=Line(point1=Vector2D(self.kub.state.homePos[self.defender_id].x,self.kub.state.homePos[self.defender_id].y),angle=math.pi+angle_of_bot_motion)
-        intercepting_point=ball_vel_line.intersection_with_line(bot_vel_line)
-        print("Intercepting point: ",intercepting_point.x,intercepting_point.y)
-        return (intercepting_point,bot_vel_line)
+        # angle_of_bot_motion=ball_to_bot_line.angle-alpha
+        # print("Angle of balltobotline: ",radian_2_deg(ball_to_bot_line.angle))
+        # print("Angle of bot motion: ",radian_2_deg(angle_of_bot_motion))
+        # bot_vel_line=Line(point1=Vector2D(self.kub.state.homePos[self.defender_id].x,self.kub.state.homePos[self.defender_id].y),angle=math.pi+angle_of_bot_motion)
+        # intercepting_point=ball_vel_line.intersection_with_line(bot_vel_line)
+        print("Intercepting point: ",intersection_point.x,intersection_point.y)
+        return (intersection_point,bot_vel_line)
 
     def on_enter_setup(self):
         self.behavior_failed=False
@@ -113,8 +120,8 @@ class HeadonRecieve(behavior.Behavior):
 
         (vx,vy)=bot_vel_line.normalized_components()
         print("vx=",vx," vy=",vy)
-        vx=vx*1000
-        vy=vy*1000
+        vx=vx*2000
+        vy=vy*2000
 
         while(dist(self.kub.state.homePos[self.defender_id],self.intercepting_point)>200):
             self.kub.move(vx,vy)
@@ -147,4 +154,5 @@ class HeadonRecieve(behavior.Behavior):
         #     prev_point = next_point
 
     def on_exit_HOR(self):
+        print("exit HOR")
         pass
