@@ -23,7 +23,7 @@ class DribbleAndKick(behavior.Behavior):
 
         self.name = "DribbleAndKick"
 
-        self.power = 7.0
+        self.power = 4.0
 
         self.target_point = None
 
@@ -142,17 +142,17 @@ class DribbleAndKick(behavior.Behavior):
 
 
     def on_enter_fine_approach(self):
-        print "[on_enter_fine_approach]"
+        print ("[on_enter_fine_approach]")
         self.target_point = self.kub.state.ballPos
         theta = self.kub.get_pos().theta
         _GoToPoint_.init(self.kub, self.target_point, theta)
         pass
 
     def execute_fine_approach(self):
-        print "[execute_fine_approach]"
+        print ("[execute_fine_approach]")
         start_time = rospy.Time.now()
         start_time = 1.0*start_time.secs + 1.0*start_time.nsecs/pow(10,9)   
-        generatingfunction = _GoToPoint_.execute(start_time,self.ball_dist_thresh,False,True)
+        generatingfunction = _GoToPoint_.execute(start_time,self.ball_dist_thresh*0.8,False,True)
         # generatingfunction = _GoToPoint_.execute(start_time,self.ball_dist_thresh,True,True)
 
         for gf in generatingfunction:
@@ -172,15 +172,15 @@ class DribbleAndKick(behavior.Behavior):
 
 
     def on_enter_dribble_move(self):
-        print "[on_enter_dribble_move]"
+        print ("[on_enter_dribble_move]")
         self.kub.dribble(True)
         self.kub.execute()
-        self.target_point=Vector2D(0, 0)
-        _GoToPoint_.init(self.kub, self.target_point, self.theta)
+        self.target_point=Vector2D(-900, 900)
+        _GoToPoint_.init(self.kub, self.target_point, -0.78) #hardcoded theta
 
 
     def execute_dribble_move(self):
-        print "[execute_dribble_move]"
+        print ("[execute_dribble_move]")
         start_time = rospy.Time.now()
         start_time = 1.0*start_time.secs + 1.0*start_time.nsecs/pow(10,9)   
         generatingfunction = _GoToPoint_.execute(start_time,self.course_approch_thresh, False, True)

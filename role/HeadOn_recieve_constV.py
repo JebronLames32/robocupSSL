@@ -53,13 +53,12 @@ class HeadonRecieve(behavior.Behavior):
         global prev_state
         
         count=0
-        while(magnitute(self.kub.state.ballVel)<50):
+        while(magnitute(self.kub.state.ballVel)<50 or self.kub.state.ballVel.x<0):
             try:
-                time.sleep(0.05)
                 self.kub.state = getState(prev_state).stateB
                 print(count)
                 count+=1
-                
+                time.sleep(0.1)
             except rospy.ServiceException, e:
                 print("Error ", e)
             # print(kub.state)
@@ -73,18 +72,13 @@ class HeadonRecieve(behavior.Behavior):
         angle_at_vextex = ball_to_bot_line.angle_with_line(ball_vel_line)
         # angle_at_vextex = math.pi-angle_at_vextex
         ball_velocity=magnitute(self.kub.state.ballVel)
-        bot_velocity=1000
+        bot_velocity=600
         print(self.kub.state.ballVel)
         print("Ball velocity",ball_velocity)
         print("Bot velocity",bot_velocity)
         k=ball_velocity/bot_velocity
         print("K=",k," angle at vertex=",radian_2_deg(angle_at_vextex))
-        if(k*math.sin(angle_at_vextex)>1):
-            alpha=math.pi/2 
-        elif(k*math.sin(angle_at_vextex)<-1):
-            alpha=-math.pi/2
-        else:
-            alpha=math.asin(k*math.sin(angle_at_vextex))*1.3
+        alpha=math.asin(k*math.sin(angle_at_vextex))*1.3
         print("Alpha: ",radian_2_deg(alpha))
         # ball_to_bot_line.angle=math.pi-ball_to_bot_line.angle
         angle_of_bot_motion=ball_to_bot_line.angle-alpha
@@ -119,9 +113,9 @@ class HeadonRecieve(behavior.Behavior):
 
         (vx,vy)=bot_vel_line.normalized_components()
         print("vx=",vx," vy=",vy)
-        vx=vx*3000
-        vy=vy*3000
-        count=1
+        vx=vx*1000
+        vy=vy*1000
+
         while(dist(self.kub.state.homePos[self.defender_id],self.intercepting_point)>200):
             self.kub.move(vx,vy)
             try:
@@ -132,17 +126,6 @@ class HeadonRecieve(behavior.Behavior):
             if not(prev_state == self.kub.state):
                 prev_state = self.kub.state
             self.kub.execute()
-            print(count)
-            count+=1
-            time.sleep(0.1)
-            
-            if(count<25):
-                (self.intercepting_point,bot_vel_line)=self.find_intercept_point()
-                (vx,vy)=bot_vel_line.normalized_components()
-                vx=vx*3000
-                vy=vy*3000
-            print("vx=",vx," vy=",vy)
-            
         self.kub.move(0,0)
         print("Reached")
         self.kub.execute()

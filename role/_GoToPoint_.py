@@ -82,6 +82,9 @@ def execute(startTime,DIST_THRESH,avoid_ball=False, fine_approach=False):
             t = t.secs + 1.0*t.nsecs/pow(10,9)
 
             [vx, vy, vw, REPLANNED] = velocity.run.Get_Vel(start_time, t, kub.kubs_id, GOAL_POINT, kub.state.homePos, kub.state.awayPos, avoid_ball)
+            vx=vx*3
+            vy=vy*3
+            vw=vw*3
             if fine_approach:
                 vx=vx/2
                 vy=vy/2
@@ -117,7 +120,7 @@ def execute(startTime,DIST_THRESH,avoid_ball=False, fine_approach=False):
             # print("Distance ______",dist(kub.state.homePos[kub.kubs_id], GOAL_POINT))
             if dist(kub.state.homePos[kub.kubs_id], GOAL_POINT)<DIST_THRESH :
                 kub.move(0,0)
-                # print("Distance completed"*200)
+                # print("Distance completed")
                 FLAG_move = True
             else:
                 # print("Sending velocity",vx,vy)

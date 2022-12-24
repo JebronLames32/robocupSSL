@@ -94,10 +94,10 @@ class Line(Structure):
 
 	# CHECK ---->  SLOPE
 	def intersection_with_line(self, line2):
-		if not isinstance(line, line2):
+		if not isinstance(line2, Line):		#error line-->Line and (Line,line2)-->(line2,Line)
 			raise ValueError("Expected Line instance, got %s" %type(line2).__name__)
-		c1 = self.point.y - self.slope * self.point.x
-		c2 = line2.point.y - line2.slope * line2.point.x
+		c1 = self.point.y - self.slope * self.point.x		# c1 = y - mx ,c1 is y intercept of line1
+		c2 = line2.point.y - line2.slope * line2.point.x	# c2 = y - mx ,c2 is y intercept of line2
 
 		m1 = self.slope
 		m2 = line2.slope
@@ -123,9 +123,9 @@ class Line(Structure):
 		p = point
 		a = self.slope
 		b = -1
-		c = self.point.y - self.slope * self.point.x
+		c = self.point.y - self.slope * self.point.x	# c = y - mx ,c is y intercept of line1
 
-		distance = math.fabs(a * p.x + b * p.y + c) / math.sqrt(a**2 + b**2)
+		distance = math.fabs(a * p.x + b * p.y + c) / math.sqrt(a**2 + b**2)	#Standard form of line is used
 		return distance
 	##
 	# @brief      Find nearest point on line from given point
@@ -157,15 +157,21 @@ class Line(Structure):
 		#######################################
 		if not isinstance(line, Line):
 			raise ValueError("Expected Line, got %s" %type(point).__name__)
-		theta1 = atan(self.angle)
-		theta2 = atan(line.angle)
+		theta1 = math.atan(self.angle)
+		theta2 = math.atan(line.angle)
 		theta = math.fabs(theta1 - theta2)
-		return min(theta, math.fabs(180 - theta))
+		# return min(theta, math.fabs(math.pi - theta))	#wrong 180-->math.pi
+		return theta									#making change returning theta only
 
 	def normalized_vector(self):
 		# angle = math.atan(self.slope)
 		angle = self.angle
 		return Vector2D(math.cos(angle), math.sin(angle))
+
+	def normalized_components(self):		#new addidion
+		# angle = math.atan(self.slope)
+		angle = self.angle
+		return (math.cos(angle), math.sin(angle))
 	
 	def nearest_point_on_line(self,point):
 		t=(point.y-self.point.y)*math.sin(self.angle)+(point.x-self.point.x)*(math.cos(self.angle))
