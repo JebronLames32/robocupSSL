@@ -131,10 +131,11 @@ class HeadonRecieve(behavior.Behavior):
             # print(kub.state)
             if not(prev_state == self.kub.state):
                 prev_state = self.kub.state
-            self.kub.execute()
-            print(count)
-            count+=1
-            time.sleep(0.1)
+            while (count%30 != 0):
+                self.kub.execute()
+                # print(count)
+                count+=1
+            # time.sleep(0.1)
             
             if(count<25):
                 (self.intercepting_point,bot_vel_line)=self.find_intercept_point()
