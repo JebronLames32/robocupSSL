@@ -130,9 +130,11 @@ def shouldReplan():
     obsPos = Vector2D()
     index = v.GetExpectedPositionIndex()
     for i in xrange(len(homePos)):
+        # if same bot, skip
         if i == kubid:
             pass
         else:
+            # checking if any other bot is in the path
             obsPos.x = int(homePos[i].x)
             obsPos.y = int(homePos[i].y)
             if v.ellipse(myPos,obsPos,v.motionAngle[index]):

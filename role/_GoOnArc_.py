@@ -51,6 +51,7 @@ def init(_kub,target,center,radius,rotate, point, take_bigger_arc):
     FIRST_CALL = True
     POINT = point
     TAKE_BIGGER_ARC = take_bigger_arc
+    # BALL_VEL_DIR = ball_vel_dir
 
 v_tan_prev = 0
 v_norm_prev = 0
@@ -66,12 +67,13 @@ def velocity_planner(bot_pos):
     else:
         vw = 0
     # tangential velocity controller
-    consts_tan = np.array([4,0.05])
+    consts_tan = np.array([6,0.05])
     if POINT is None:
         theta1 = math.atan2(bot_pos.y-CENTER.y,bot_pos.x-CENTER.x)
         theta2 = math.atan2(TARGET.y-CENTER.y,TARGET.x-CENTER.x)
         theta = theta2-theta1
         theta = functions.normalize_angle(theta)
+        print 'Theta: ' + str(theta)
         if TAKE_BIGGER_ARC == True:
             if theta<0:
                 theta = 2*math.pi+theta
@@ -81,17 +83,25 @@ def velocity_planner(bot_pos):
         theta1 = math.atan2(bot_pos.y-CENTER.y,bot_pos.x-CENTER.x)
         theta2 = math.atan2(TARGET.y-CENTER.y,TARGET.x-CENTER.x)
         theta3 = math.atan2(POINT.y-CENTER.y,POINT.x-CENTER.x)
+        # print 'Theta1: ' + str(theta1)
+        # print 'Theta2: ' + str(theta2)
+        # print 'Theta3: ' + str(theta3)
         alpha1 = functions.normalize_angle(theta3-theta1)
         alpha2 = functions.normalize_angle(theta2-theta3)
+        # print 'Alpha1: ' + str(alpha1)
+        # print 'Alpha2: ' + str(alpha2)
         theta = alpha1+alpha2
+        # print 'Theta: ' + str(theta)
     dist_tan = theta*RADIUS
     values_tan = np.array([[dist_tan],[-v_tan_prev]])
-    vel_tangential = consts_tan.dot(values_tan)
+    vel_tangential = consts_tan.dot(values_tan)         
     #print("vel tangential", vel_tangential)
     #normal velocity controller
-    consts_rad = np.array([4,0.05])
+    consts_rad = np.array([6,0.05])
     radius1 = math.sqrt((bot_pos.y-CENTER.y)**2+(bot_pos.x-CENTER.x)**2)
     radius2 = math.sqrt((TARGET.y-CENTER.y)**2+(TARGET.x-CENTER.x)**2)
+    # print 'Radius1: ' + str(radius1)
+    # print 'Radius2: ' + str(radius2)
     dist_radial = radius2-radius1
     values_rad = np.array([[dist_radial],[-v_norm_prev]])
     vel_radial = consts_rad.dot(values_rad)
@@ -105,7 +115,6 @@ def velocity_planner(bot_pos):
         vx = config.MAX_BOT_SPEED*math.cos(alpha)
         vy = config.MAX_BOT_SPEED*math.sin(alpha)
     #print("vx,vy", vx, vy)
-    print("bot_pos", bot_pos)
     return vx,vy,vw
 
 def execute(startTime,DIST_THRESH,ROTATION_FACTOR,avoid_ball=False):

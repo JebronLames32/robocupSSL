@@ -12,7 +12,6 @@ from utils.config import *
 
 
 DISTANCE_THRESH = 10
-ROTATION_FACTOR = 0.1
 
 class GoOnArc(behavior.Behavior):
     """docstring for GoOnArc"""
@@ -39,7 +38,6 @@ class GoOnArc(behavior.Behavior):
         self.point = None
         self.behavior_failed = False
         self.DISTANCE_THRESH = DISTANCE_THRESH
-        self.ROTATION_FACTOR = ROTATION_FACTOR
         self.take_bigger_arc = False
 
         #adding states to fsm
@@ -139,7 +137,7 @@ class GoOnArc(behavior.Behavior):
         print("Execute drive")
         start_time = rospy.Time.now()
         start_time = 1.0*start_time.secs + 1.0*start_time.nsecs/pow(10,9)
-        generatingfunction = _GoOnArc_.execute(start_time,self.DISTANCE_THRESH, self.ROTATION_FACTOR)
+        generatingfunction = _GoOnArc_.execute(start_time,self.DISTANCE_THRESH)
         print("Datatype of gf:",type(generatingfunction))
         for gf in generatingfunction:
             self.kub,target = gf

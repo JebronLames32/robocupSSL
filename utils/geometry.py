@@ -98,7 +98,15 @@ class Vector2D(Structure):
 	def __mul__(self,scale):
 		return Vector2D(self.x * scale , self.y * scale)
 
+	__rmul__ = __mul__
+
 	def __truediv__(self,scale):
+		if scale == 0 :
+			raise Exception('Tried scaling down vector by zero')
+		else :
+			return Vector2D(self.x/scale,self.y/scale)
+
+	def __rtruediv__(self,scale):
 		if scale == 0 :
 			raise Exception('Tried scaling down vector by zero')
 		else :
@@ -127,3 +135,8 @@ class Vector2D(Structure):
 				return True
 		return False
 
+	def cross_pdt(self, another_point):
+		return self.x*another_point.y - self.y*another_point.x
+
+	def rotate(self,angle):
+		return Vector2D(self.x*math.cos(angle) - self.y*math.sin(angle),self.x*math.sin(angle) + self.y*math.cos(angle))
